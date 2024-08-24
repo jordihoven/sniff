@@ -25,6 +25,7 @@
 
 <script>
 import { ref } from 'vue'
+// @ts-ignore
 import { searchWithFuzzyMatching } from '../api/omdbApi'
 
 export default {
