@@ -2,48 +2,55 @@
   <div>
     <input
       class="search"
-      v-model="movieTitle"
-      @input="fetchMovieDetails"
-      placeholder="Search movie on title..."
+      v-model="searchQuery"
+      @input="fetchMovies"
+      placeholder="Search movie by title..."
     />
-    <div v-if="movie" class="movie-card">
-      <div class="movie-img">
-        <img :src="movie.Poster" alt="Movie Poster" />
-      </div>
-      <div class="movie-details">
-        <p>{{ movie.Title }}</p>
-        <span>{{ movie.Plot }}</span>
-        <span>{{ movie.Runtime }}</span>
-        <span>{{ movie.Diretor }}</span>
+    <div v-if="movies.length" class="results-list">
+      <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
+        <div class="movie-img">
+          <img :src="movie.Poster" alt="Movie Poster" />
+        </div>
+        <div class="movie-details">
+          <p>{{ movie.Title }}</p>
+          <span>{{ movie.Plot }}</span>
+          <span>{{ movie.Runtime }}</span>
+          <span>{{ movie.Director }}</span>
+        </div>
       </div>
     </div>
+    <!-- <p v-if="error">{{ error }}</p> -->
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
-import { getMovieDetails } from '../api/omdbApi'
+import { searchWithFuzzyMatching } from '../api/omdbApi'
 
 export default {
   setup() {
-    const movieTitle = ref('')
-    const movie = ref(null)
+    const searchQuery = ref('')
+    const movies = ref([])
+    const error = ref(null)
 
-    // method ran on input...
-    const fetchMovieDetails = async () => {
-      if (movieTitle.value.trim()) {
+    const fetchMovies = async () => {
+      if (searchQuery.value.trim()) {
         try {
-          movie.value = await getMovieDetails(movieTitle.value)
-        } catch (error) {
-          console.error('Failed to fetch movie details')
+          movies.value = await searchWithFuzzyMatching(searchQuery.value)
+        } catch (err) {
+          error.value = 'Failed to fetch movies'
+          console.error('Failed to fetch movies:', err)
         }
+      } else {
+        movies.value = [] // Clear movie list when query is empty
       }
     }
 
     return {
-      movieTitle,
-      movie,
-      fetchMovieDetails
+      searchQuery,
+      movies,
+      error,
+      fetchMovies
     }
   }
 }
@@ -97,5 +104,11 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xs-spacing);
 }
 </style>
