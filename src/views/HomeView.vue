@@ -1,6 +1,101 @@
-<script setup lang="ts">
+<template>
+  <div>
+    <input
+      class="search"
+      v-model="movieTitle"
+      @input="fetchMovieDetails"
+      placeholder="Search movie on title..."
+    />
+    <div v-if="movie" class="movie-card">
+      <div class="movie-img">
+        <img :src="movie.Poster" alt="Movie Poster" />
+      </div>
+      <div class="movie-details">
+        <p>{{ movie.Title }}</p>
+        <span>{{ movie.Plot }}</span>
+        <span>{{ movie.Runtime }}</span>
+        <span>{{ movie.Diretor }}</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue'
+import { getMovieDetails } from '../api/omdbApi'
+
+export default {
+  setup() {
+    const movieTitle = ref('')
+    const movie = ref(null)
+
+    // method ran on input...
+    const fetchMovieDetails = async () => {
+      if (movieTitle.value.trim()) {
+        try {
+          movie.value = await getMovieDetails(movieTitle.value)
+        } catch (error) {
+          console.error('Failed to fetch movie details')
+        }
+      }
+    }
+
+    return {
+      movieTitle,
+      movie,
+      fetchMovieDetails
+    }
+  }
+}
 </script>
 
-<template>
-  Boilerplate setup for cinemagnet...
-</template>
+<style scoped lang="css">
+.search {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: var(--xs-spacing);
+  font-size: var(--body);
+  font-weight: var(--medium);
+  width: 100%;
+  transition: var(--transition);
+  margin-bottom: var(--m-spacing);
+}
+.search:hover {
+  border: 1px solid var(--primary);
+  background-color: var(--bg-secondary);
+  box-shadow: var(--box-shadow);
+}
+
+.movie-card {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: var(--xs-spacing);
+  background-color: var(--bg-primary);
+  display: flex;
+  transition: var(--transition);
+  gap: var(--xs-spacing);
+}
+.movie-card:hover {
+  filter: brightness(98%);
+}
+
+.movie-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xs-spacing);
+}
+
+/* TODO: figure out a way to have responsive images playing nicely... */
+.movie-img {
+  flex-shrink: 0;
+  width: 8rem;
+  aspect-ratio: 2 / 3;
+}
+.movie-card img {
+  border-radius: var(--radius);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+</style>
