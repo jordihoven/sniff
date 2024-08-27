@@ -9,7 +9,11 @@
       />
     </div>
     <div class="results-wrapper">
-      <div v-if="movies.length" class="results-list">
+      <div v-if="loading" class="empty-state">
+        <p>Loading flicks...</p>
+        <span class="research">Researches automatically when you change your searchterm ✨</span>
+      </div>
+      <div v-else-if="movies.length" class="results-list">
         <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
           <div class="movie-img">
             <img :src="movie.Poster" alt="Movie Poster" />
@@ -22,9 +26,9 @@
           </div>
         </div>
       </div>
-      <div class="empty-state" v-else>
+      <div v-else class="empty-state">
         <p>Nothing to show</p>
-        <span>Once you finish typing, movies will show here...</span>
+        <span>Searches automatically when you finish typing... ✨</span>
       </div>
     </div>
     <!-- <p v-if="error">{{ error }}</p> -->
@@ -41,6 +45,8 @@ export default {
     const movies = ref([])
     const error = ref(null)
 
+    const loading = ref(false)
+
     // debounce function, so that api call waits for user to finish typing...
     function debounce(func, wait) {
       let timeout
@@ -53,14 +59,18 @@ export default {
     // fetch movies from from api...
     const fetchMovies = debounce(async () => {
       if (searchQuery.value.trim()) {
+        loading.value = true
         try {
           movies.value = await searchWithFuzzyMatching(searchQuery.value)
         } catch (err) {
           error.value = 'Failed to fetch movies'
           console.error('Failed to fetch movies:', err)
+        } finally {
+          loading.value = false
         }
       } else {
         movies.value = [] // clear movie list when query is empty...
+        loading.value = false
       }
     }, 700)
 
@@ -68,6 +78,7 @@ export default {
       searchQuery,
       movies,
       error,
+      loading,
       fetchMovies
     }
   }
