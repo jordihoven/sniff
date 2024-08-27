@@ -75,7 +75,7 @@ export default {
 
 .search-wrapper {
   border-bottom: 1px solid var(--stroke);
-  padding: 0 var(--s-spacing);
+  padding: var(--s-spacing);
 }
 
 .search {
