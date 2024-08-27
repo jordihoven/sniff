@@ -1,21 +1,25 @@
 <template>
-  <div>
-    <input
-      class="search"
-      v-model="searchQuery"
-      @input="fetchMovies"
-      placeholder="Search movie by title..."
-    />
-    <div v-if="movies.length" class="results-list">
-      <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
-        <div class="movie-img">
-          <img :src="movie.Poster" alt="Movie Poster" />
-        </div>
-        <div class="movie-details">
-          <p>{{ movie.Title }}</p>
-          <span>{{ movie.Plot }}</span>
-          <span>{{ movie.Runtime }}</span>
-          <span>{{ movie.Director }}</span>
+  <div class="app-container">
+    <div class="search-wrapper">
+      <input
+        class="search"
+        v-model="searchQuery"
+        @input="fetchMovies"
+        placeholder="Search movie by title..."
+      />
+    </div>
+    <div class="results-wrapper">
+      <div v-if="movies.length" class="results-list">
+        <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
+          <div class="movie-img">
+            <img :src="movie.Poster" alt="Movie Poster" />
+          </div>
+          <div class="movie-details">
+            <p>{{ movie.Title }}</p>
+            <span>{{ movie.Plot }}</span>
+            <span>{{ movie.Runtime }}</span>
+            <span>{{ movie.Director }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -58,16 +62,32 @@ export default {
 </script>
 
 <style scoped lang="css">
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.results-wrapper {
+  overflow: auto;
+  padding: var(--m-spacing) var(--s-spacing);
+}
+
+.search-wrapper {
+  border-bottom: 1px solid var(--stroke);
+  padding: 0 var(--s-spacing);
+}
+
 .search {
   background-color: var(--bg-primary);
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
-  padding: var(--xs-spacing);
   font-size: var(--body);
   font-weight: var(--medium);
   width: 100%;
   transition: var(--transition);
   margin-bottom: var(--m-spacing);
+  padding: var(--xs-spacing);
 }
 .search:hover {
   border: 1px solid var(--primary);
@@ -108,8 +128,13 @@ export default {
 }
 
 .results-list {
-  display: flex;
   flex-direction: column;
   gap: var(--xs-spacing);
+}
+.results-list,
+.search {
+  max-width: 60rem;
+  display: flex;
+  margin: 0 auto;
 }
 </style>
