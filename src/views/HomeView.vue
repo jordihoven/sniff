@@ -22,6 +22,10 @@
           </div>
         </div>
       </div>
+      <div class="empty-state" v-else>
+        <p>Nothing to show</p>
+        <span>Once you finish typing, movies will show here...</span>
+      </div>
     </div>
     <!-- <p v-if="error">{{ error }}</p> -->
   </div>
@@ -29,7 +33,6 @@
 
 <script>
 import { ref } from 'vue'
-// @ts-ignore
 import { searchWithFuzzyMatching } from '../api/omdbApi'
 
 export default {
@@ -38,7 +41,17 @@ export default {
     const movies = ref([])
     const error = ref(null)
 
-    const fetchMovies = async () => {
+    // debounce function, so that api call waits for user to finish typing...
+    function debounce(func, wait) {
+      let timeout
+      return function (...args) {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(this, args), wait)
+      }
+    }
+
+    // fetch movies from from api...
+    const fetchMovies = debounce(async () => {
       if (searchQuery.value.trim()) {
         try {
           movies.value = await searchWithFuzzyMatching(searchQuery.value)
@@ -47,9 +60,9 @@ export default {
           console.error('Failed to fetch movies:', err)
         }
       } else {
-        movies.value = [] // Clear movie list when query is empty
+        movies.value = [] // clear movie list when query is empty...
       }
-    }
+    }, 700)
 
     return {
       searchQuery,
@@ -136,5 +149,14 @@ export default {
   max-width: 60rem;
   display: flex;
   margin: 0 auto;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xs-spacing);
+  margin: 0 auto;
+  max-width: 60rem;
+  align-items: center;
 }
 </style>
