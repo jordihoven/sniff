@@ -94,7 +94,7 @@ export default {
 
 .results-wrapper {
   overflow: auto;
-  padding: var(--m-spacing) var(--s-spacing);
+  padding: var(--m-spacing) var(--s-spacing) var(--xl-spacing) var(--s-spacing);
 }
 
 .search-wrapper {

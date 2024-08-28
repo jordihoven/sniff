@@ -142,3 +142,10 @@ a:hover {
 .loader {
   animation: rotate 1.5s linear infinite;
 }
+
+/* styling for lucide icons... */
+.icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-primary);
+}
