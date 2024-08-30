@@ -1,12 +1,7 @@
 <template>
   <div class="app-container">
     <div class="search-wrapper">
-      <input
-        class="search"
-        v-model="searchQuery"
-        @input="fetchMovies"
-        placeholder="Search movie by title..."
-      />
+      <input class="search" v-model="searchQuery" @input="fetchMovies" placeholder="Search movie by title..." />
     </div>
     <div class="results-wrapper">
       <div v-if="loading" class="empty-state">
@@ -37,7 +32,6 @@
 
 <script>
 import { ref } from 'vue'
-import { searchWithFuzzyMatching } from '../api/omdbApi'
 
 export default {
   setup() {
@@ -58,18 +52,14 @@ export default {
 
     // fetch movies from from api...
     const fetchMovies = debounce(async () => {
-      if (searchQuery.value.trim()) {
+      try {
         loading.value = true
-        try {
-          movies.value = await searchWithFuzzyMatching(searchQuery.value)
-        } catch (err) {
-          error.value = 'Failed to fetch movies'
-          console.error('Failed to fetch movies:', err)
-        } finally {
-          loading.value = false
-        }
-      } else {
-        movies.value = [] // clear movie list when query is empty...
+        const response = await fetch(`/.netlify/functions/omdbFetch?title=${searchQuery.value}`)
+        const data = await response.json()
+        movies.value = [data]
+      } catch (error) {
+        console.error(error)
+      } finally {
         loading.value = false
       }
     }, 700)
