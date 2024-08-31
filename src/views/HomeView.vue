@@ -1,32 +1,37 @@
 <template>
   <div class="app-container">
     <div class="search-wrapper">
-      <input class="search" v-model="searchQuery" @input="fetchMovies" placeholder="Search movie by title..." />
+      <div class="input-container">
+        <input class="search" v-model="searchQuery" @input="fetchMovies" placeholder="Search movie by title..." />
+        <LucideSearch class="icon search-icon"></LucideSearch>
+      </div>
     </div>
     <div class="results-wrapper">
       <div v-if="loading" class="empty-state">
-        <p>Loading flicks...</p>
+        <p class="medium">Loading flicks...</p>
         <span class="research">Researches automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="movies.length" class="results-list">
         <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
-          <div class="movie-img">
-            <img :src="movie.Poster" alt="Movie Poster" />
-          </div>
           <div class="movie-details">
-            <p>{{ movie.Title }}</p>
-            <span>{{ movie.Plot }}</span>
-            <span>{{ movie.Runtime }}</span>
-            <span>{{ movie.Director }}</span>
+            <div class="movie-img">
+              <img :src="movie.Poster" alt="Movie Poster" />
+            </div>
+            <div class="name-rating-duration">
+              <p class="medium">{{ movie.Title }}</p>
+              <div class="details">
+                <span class="movie-detail"><LucideHourglass class="icon"></LucideHourglass>{{ movie.Runtime }}</span>
+                <span class="movie-detail"><LucideStar class="icon"></LucideStar>{{ movie.imdbRating }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div v-else class="empty-state">
-        <p>Nothing to show</p>
+        <p class="medium">Nothing to show</p>
         <span>Searches automatically when you finish typing... ✨</span>
       </div>
     </div>
-    <!-- <p v-if="error">{{ error }}</p> -->
   </div>
 </template>
 
@@ -38,10 +43,9 @@ export default {
     const searchQuery = ref('')
     const movies = ref([])
     const error = ref(null)
-
     const loading = ref(false)
 
-    // debounce function, so that api call waits for user to finish typing...
+    // Debounce function, so that api call waits for user to finish typing...
     function debounce(func, wait) {
       let timeout
       return function (...args) {
@@ -50,15 +54,43 @@ export default {
       }
     }
 
-    // fetch movies from from api...
+    // Function to fetch detailed movie data by IMDb ID
+    const fetchMovieDetails = async (movie) => {
+      try {
+        const response = await fetch(`/.netlify/functions/omdbFetch?id=${movie.imdbID}`)
+        const detailedData = await response.json()
+        return {
+          Title: detailedData.Title,
+          Year: detailedData.Year,
+          Runtime: detailedData.Runtime,
+          imdbRating: detailedData.imdbRating,
+          Poster: detailedData.Poster,
+          imdbID: detailedData.imdbID
+        }
+      } catch (err) {
+        console.error('Error fetching movie details:', err)
+        return movie // Return the original movie if detail fetch fails
+      }
+    }
+
+    // Fetch movies from API
     const fetchMovies = debounce(async () => {
       try {
         loading.value = true
         const response = await fetch(`/.netlify/functions/omdbFetch?title=${searchQuery.value}`)
         const data = await response.json()
-        movies.value = [data]
-      } catch (error) {
-        console.error(error)
+
+        if (data && Array.isArray(data.Search)) {
+          // Fetch details for each movie
+          const detailedMoviesPromises = data.Search.map(fetchMovieDetails)
+          movies.value = await Promise.all(detailedMoviesPromises) // Wait for all details to load
+        } else {
+          error.value = data.error || 'No movies found'
+          movies.value = []
+        }
+      } catch (err) {
+        console.error(err)
+        error.value = 'Error fetching data'
       } finally {
         loading.value = false
       }
@@ -100,8 +132,7 @@ export default {
   font-weight: var(--medium);
   width: 100%;
   transition: var(--transition);
-  margin-bottom: var(--m-spacing);
-  padding: var(--xs-spacing);
+  padding: var(--xs-spacing) var(--xs-spacing) var(--xs-spacing) 28px;
 }
 .search:hover {
   border: 1px solid var(--primary);
@@ -109,20 +140,50 @@ export default {
   box-shadow: var(--box-shadow);
 }
 
+.input-container {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: var(--xs-spacing); /* Adjust to position the icon correctly */
+  top: 50%;
+  transform: translateY(-50%); /* Center icon vertically */
+  pointer-events: none; /* Prevent icon from blocking clicks on input */
+}
+
 .movie-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-spacing);
+  transition: var(--transition);
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
   padding: var(--xs-spacing);
   background-color: var(--bg-primary);
-  display: flex;
-  transition: var(--transition);
-  gap: var(--xs-spacing);
 }
 .movie-card:hover {
   filter: brightness(98%);
 }
 
 .movie-details {
+  display: flex;
+  gap: var(--s-spacing);
+  justify-content: center;
+  align-items: center;
+}
+.movie-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--xs-spacing);
+  padding: 4px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius);
+  width: fit-content;
+}
+
+.name-rating-duration {
   display: flex;
   flex-direction: column;
   gap: var(--xs-spacing);
@@ -131,7 +192,7 @@ export default {
 /* TODO: figure out a way to have responsive images playing nicely... */
 .movie-img {
   flex-shrink: 0;
-  width: 8rem;
+  width: 4rem;
   aspect-ratio: 2 / 3;
 }
 .movie-card img {
@@ -146,7 +207,7 @@ export default {
   gap: var(--xs-spacing);
 }
 .results-list,
-.search {
+.input-container {
   max-width: 60rem;
   display: flex;
   margin: 0 auto;
@@ -159,5 +220,13 @@ export default {
   margin: 0 auto;
   max-width: 60rem;
   align-items: center;
+}
+.empty-state span {
+  text-align: center;
+}
+
+.details {
+  display: flex;
+  gap: var(--xs-spacing);
 }
 </style>
