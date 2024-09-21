@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="torrent-downloader">
       <div ref="dropZoneRef" class="dropzone" :class="{ dragover: isOverDropZone }" @click="openFileExplorer">
-        <p>Drag and drop .torrent files here.</p>
+        <p>Drag a torrent file here 🧲</p>
         <input type="file" :accept="acceptedTypesString" ref="fileInput" @change="handleFilesSelected" multiple hidden />
       </div>
     </div>
