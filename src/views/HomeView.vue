@@ -15,7 +15,8 @@
         <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">
           <div class="movie-details">
             <div class="movie-img">
-              <img :src="movie.Poster" alt="Movie Poster" />
+              <div v-if="movie.Poster === 'N/A'" class="no-poster">📽️</div>
+              <img v-else :src="movie.Poster" alt="Movie Poster" />
             </div>
             <div class="name-rating-duration">
               <p class="medium">{{ movie.Title }}</p>
@@ -200,6 +201,16 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  box-shadow: 0 0 8px var(--bg-secondary); /* TODO: find a subtle dropshadow color that works on light & darkmode */
+}
+
+.movie-card .no-poster {
+  background-color: var(--bg-secondary);
+  height: 100%;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .results-list {
