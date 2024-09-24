@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="search-container">
     <div class="search-wrapper">
       <div class="input-container">
         <input class="search" v-model="searchQuery" @input="fetchMovies" placeholder="Search movie by title..." />
@@ -109,15 +109,25 @@ export default {
 </script>
 
 <style scoped lang="css">
-.app-container {
+.search-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  position: absolute;
+  z-index: 100;
+  top: 40px;
+  background: var(--bg-main);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - var(--m-spacing));
+  max-width: 40em;
 }
 
 .results-wrapper {
   overflow: auto;
-  padding: var(--m-spacing) var(--s-spacing) var(--xl-spacing) var(--s-spacing);
+  max-height: 30em;
+  padding: var(--s-spacing);
 }
 
 .search-wrapper {

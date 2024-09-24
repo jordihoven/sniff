@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="torrent-downloader">
       <div ref="dropZoneRef" class="dropzone" :class="{ dragover: isOverDropZone }" @click="openFileExplorer">
-        <p>Drag a torrent file here 🧲</p>
+        <p class="medium">Drag & drop a .torrent file, or click to use file explorer</p>
         <input type="file" :accept="acceptedTypesString" ref="fileInput" @change="handleFilesSelected" multiple hidden />
       </div>
     </div>
@@ -17,11 +17,24 @@
       </div>
     </div>
   </div>
+
+  <button class="search-movies-button" @click="toggleMovieSearch">
+    <LucideClapperboard class="icon" />
+    Search movies
+  </button>
+  <MovieSearch v-if="isMovieSearchVisible" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useDropZone } from '@vueuse/core'
+import MovieSearch from './movieSearch.vue'
+
+const isMovieSearchVisible = ref(false)
+
+const toggleMovieSearch = () => {
+  isMovieSearchVisible.value = !isMovieSearchVisible.value
+}
 
 const dropZoneRef = ref(null)
 const fileInput = ref(null)
@@ -145,6 +158,8 @@ onMounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  max-width: 30em;
+  margin: 0 auto;
 }
 .dropzone:hover {
   cursor: pointer;
@@ -153,5 +168,28 @@ onMounted(() => {
 
 .dropzone.dragover {
   border-color: var(--primary);
+}
+
+.search-movies-button {
+  position: fixed;
+  display: flex;
+  gap: 4px;
+  padding: var(--xxs-spacing);
+  background-color: var(--bg-main);
+  border-radius: var(--radius);
+  border: var(--border);
+  color: var(--text-secondary);
+  bottom: var(--s-spacing);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 69;
+
+  display: flex;
+  padding: var(--xs-spacing);
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+.search-movies-button:hover {
+  background-color: var(--bg-primary);
 }
 </style>

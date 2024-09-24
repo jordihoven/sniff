@@ -27,19 +27,6 @@ html,
   margin: 0;
 }
 
-button {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  border: 1px solid var(--stroke);
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
-  font-size: var(--span);
-  font-weight: var(--medium);
-  height: fit-content;
-  padding: 6px var(--xs-spacing);
-}
-
 .clip-text {
   white-space: nowrap;
   overflow: hidden;

@@ -1,12 +1,12 @@
 <template>
-  <nav>
-    <router-link to="/"><LucideSearch class="icon"></LucideSearch></router-link>
-    <router-link to="/torrent"><LucideSparkles class="icon"></LucideSparkles></router-link>
-  </nav>
+  <button>
+    <LucideSearch class="icon"></LucideSearch>
+    Search movies
+  </button>
 </template>
 
 <style scoped lang="css">
-nav {
+button {
   position: fixed;
   display: flex;
   gap: 4px;
@@ -19,15 +19,13 @@ nav {
   left: 50%;
   transform: translateX(-50%);
   z-index: 69;
-}
 
-nav a {
   display: flex;
   padding: var(--xs-spacing);
   border-radius: var(--radius);
   transition: var(--transition);
 }
-nav a:hover {
+button:hover {
   background-color: var(--bg-primary);
 }
 </style>
