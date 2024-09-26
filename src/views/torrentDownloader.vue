@@ -22,7 +22,9 @@
     <LucideClapperboard class="icon" />
     Search movies
   </button>
-  <MovieSearch v-if="isMovieSearchVisible" />
+  <Transition>
+    <MovieSearch v-if="isMovieSearchVisible" />
+  </Transition>
 </template>
 
 <script setup>
@@ -191,5 +193,32 @@ onMounted(() => {
 }
 .search-movies-button:hover {
   background-color: var(--bg-primary);
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.v-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px) scale(0.95); /* Include translateX for centering */
+}
+
+.v-enter-to {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1); /* Keep translateX */
+}
+
+.v-leave-from {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1); /* Keep translateX */
+}
+
+.v-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px) scale(0.95); /* Include translateX */
 }
 </style>
