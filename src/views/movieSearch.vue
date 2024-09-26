@@ -9,7 +9,7 @@
     <div class="results-wrapper">
       <div v-if="loading" class="empty-state">
         <p class="medium">Loading flicks...</p>
-        <span class="research">Researches automatically when you change your searchterm ✨</span>
+        <span>Refreshes automatically when you change your searchterm ✨</span>
       </div>
       <div v-else-if="movies.length" class="results-list">
         <div v-for="movie in movies" :key="movie.imdbID" class="movie-card">

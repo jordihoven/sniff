@@ -8,7 +8,6 @@
     </div>
     <div class="results-wrapper">
       <div v-if="!file" class="empty-state">
-        <p class="medium">Nothing to show</p>
         <span>Starts downloading as soon as you drop a .torrent file... ✨</span>
       </div>
       <div v-if="file">
@@ -18,12 +17,12 @@
     </div>
   </div>
 
-  <button class="search-movies-button" @click="toggleMovieSearch">
+  <button class="search-movies-button" @click="showMovieSearch">
     <LucideClapperboard class="icon" />
     Search movies
   </button>
   <Transition>
-    <MovieSearch v-if="isMovieSearchVisible" />
+    <MovieSearch ref="movieSearch" v-if="isMovieSearchVisible" />
   </Transition>
 </template>
 
@@ -32,10 +31,16 @@ import { ref, onMounted } from 'vue'
 import { useDropZone } from '@vueuse/core'
 import MovieSearch from './movieSearch.vue'
 
+import { onClickOutside } from '@vueuse/core'
+const movieSearch = ref(null)
 const isMovieSearchVisible = ref(false)
 
-const toggleMovieSearch = () => {
-  isMovieSearchVisible.value = !isMovieSearchVisible.value
+onClickOutside(movieSearch, () => {
+  isMovieSearchVisible.value = false
+})
+
+const showMovieSearch = () => {
+  isMovieSearchVisible.value = true
 }
 
 const dropZoneRef = ref(null)
