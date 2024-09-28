@@ -1,18 +1,35 @@
 <template>
   <div class="app-container">
     <div class="torrent-downloader">
-      <div ref="dropZoneRef" class="dropzone" :class="{ dragover: isOverDropZone }" @click="openFileExplorer">
-        <p class="medium">Drag & drop a .torrent file, or click to use file explorer</p>
-        <input type="file" :accept="acceptedTypesString" ref="fileInput" @change="handleFilesSelected" multiple hidden />
+      <Dropzone :acceptedTypesString="acceptedTypesString" :onFileUpload="handleFileUpload" />
+      <div class="or">
+        <hr />
+        <span>or</span>
+        <hr />
       </div>
+      <input
+        class="magnetlink-input"
+        type="text"
+        v-model="magnetLink"
+        placeholder="Paste a magnet link..."
+        @keyup.enter="handleMagnetLink"
+      />
     </div>
     <div class="results-wrapper">
-      <div v-if="!file" class="empty-state">
+      <div v-if="!downloading" class="empty-state">
         <span>Starts downloading as soon as you drop a .torrent file... ✨</span>
       </div>
-      <div v-if="file">
-        <p>Filename: {{ file.name }}</p>
-        <p>Progress: {{ progress.toFixed(2) }} %</p>
+      <div v-else class="download-card">
+        <p class="medium">{{ file?.name || 'Magnet link' }}</p>
+        <div class="progress-container">
+          <div class="progress-bar" :style="{ width: progress + '%', backgroundColor: downloadFinished ? '#36B643' : '#0070f3' }"></div>
+        </div>
+        <span v-if="downloadFinished">Download finished!</span>
+        <div v-else>
+          <span>{{ downloadspeed }} Kb/s</span>
+          <span>, </span>
+          <span>{{ timeRemaining }} minutes remaining...</span>
+        </div>
       </div>
     </div>
   </div>
@@ -28,12 +45,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useDropZone } from '@vueuse/core'
-import MovieSearch from './movieSearch.vue'
 
+// components
+import Dropzone from '../components/molecules/Dropzone.vue'
+import MovieSearch from '../components/organisms/movieSearch.vue'
+
+// utils
 import { onClickOutside } from '@vueuse/core'
+
+// variables
 const movieSearch = ref(null)
 const isMovieSearchVisible = ref(false)
+const magnetLink = ref('')
 
 onClickOutside(movieSearch, () => {
   isMovieSearchVisible.value = false
@@ -43,27 +66,15 @@ const showMovieSearch = () => {
   isMovieSearchVisible.value = true
 }
 
-const dropZoneRef = ref(null)
-const fileInput = ref(null)
+const acceptedTypesString = '.torrent'
 const file = ref(null)
 const progress = ref(0)
-const acceptedTypesString = '.torrent'
-const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+const downloadspeed = ref(0)
+const timeRemaining = ref(0)
+const downloadFinished = ref(0)
+const downloading = ref(false)
 
 let client
-
-function onDrop(files) {
-  handleFileUpload(files)
-}
-
-const openFileExplorer = () => {
-  fileInput.value.click()
-}
-
-const handleFilesSelected = (event) => {
-  const files = event.target.files
-  handleFileUpload(files)
-}
 
 const handleFileUpload = (files) => {
   const selectedFile = files[0]
@@ -76,26 +87,42 @@ const handleFileUpload = (files) => {
   }
 }
 
+const handleMagnetLink = () => {
+  if (magnetLink.value) {
+    loadTorrent(magnetLink.value)
+    magnetLink.value = '' // Reset the input after loading
+  } else {
+    alert('Please enter a valid magnet link')
+  }
+}
+
 const loadTorrent = (torrentFile) => {
   client.add(torrentFile, (torrent) => {
     console.log('Torrent info:', torrent)
+    console.log('Files:', torrent.files)
 
     torrent.on('download', (bytes) => {
+      downloading.value = true
       console.log('just downloaded: ' + bytes)
-      downloadProgress(torrent)
+      progress.value = (torrent.progress * 100).toFixed(1)
+      downloadspeed.value = (torrent.downloadSpeed / 1024).toFixed(1)
+      timeRemaining.value = Math.max(Math.floor(torrent.timeRemaining / 60000))
     })
 
     torrent.on('done', () => {
+      downloading.value = false
       console.log('Download finished!')
-      downloadFiles(torrent.files)
+      downloadFinished.value = true
+    })
+
+    torrent.on('warning', (message) => {
+      console.warn('Torrent warning:', message)
+    })
+
+    torrent.on('error', (err) => {
+      console.error('Torrent error:', err)
     })
   })
-}
-
-const downloadProgress = (torrent) => {
-  const downloaded = torrent.downloaded
-  const total = torrent.length
-  progress.value = (downloaded / total) * 100
 }
 
 const downloadFiles = (files) => {
@@ -131,6 +158,11 @@ onMounted(() => {
 }
 
 .torrent-downloader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xs-spacing);
+  align-items: center;
+  justify-content: center;
   border-bottom: 1px solid var(--stroke);
   padding: var(--s-spacing);
 }
@@ -150,31 +182,6 @@ onMounted(() => {
 .results-wrapper {
   overflow: auto;
   padding: var(--m-spacing) var(--s-spacing) var(--xl-spacing) var(--s-spacing);
-}
-
-.dropzone {
-  background-color: var(--bg-secondary);
-  border: 2px dashed var(--stroke);
-  border-radius: var(--radius);
-  padding: var(--s-spacing);
-  text-align: center;
-  transition: var(--transition);
-  flex: 1;
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  max-width: 30em;
-  margin: 0 auto;
-}
-.dropzone:hover {
-  cursor: pointer;
-  filter: brightness(95%);
-}
-
-.dropzone.dragover {
-  border-color: var(--primary);
 }
 
 .search-movies-button {
@@ -225,5 +232,59 @@ onMounted(() => {
 .v-leave-to {
   opacity: 0;
   transform: translateX(-50%) translateY(-20px) scale(0.95); /* Include translateX */
+}
+
+.download-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--stroke);
+  border-radius: var(--xs-spacing);
+  padding: var(--xs-spacing);
+  max-width: 40em;
+  margin: 0 auto;
+}
+
+.progress-container {
+  width: 100%;
+  background-color: var(--stroke);
+  border-radius: 5px;
+  height: var(--xs-spacing);
+  overflow: hidden;
+}
+
+.progress-bar {
+  background-color: var(--primary);
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.magnetlink-input {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: var(--xs-spacing);
+  background-color: var(--bg-secondary);
+  font-size: var(--span);
+}
+
+.dropzone,
+.magnetlink-input {
+  width: 100%;
+  max-width: 40rem;
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  gap: var(--xs-spacing);
+  width: 100%;
+  max-width: 40rem;
+}
+
+.or hr {
+  margin: 0;
+  flex: 1;
+  background-color: var(--stroke);
 }
 </style>
