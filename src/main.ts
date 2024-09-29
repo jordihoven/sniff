@@ -1,4 +1,5 @@
 import './assets/main.css'
+import 'toaster-ts/dist/bundle.css';
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

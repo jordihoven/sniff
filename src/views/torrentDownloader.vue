@@ -17,7 +17,7 @@
     </div>
     <div class="results-wrapper">
       <div v-if="!downloading" class="empty-state">
-        <span>Starts downloading as soon as you drop a .torrent file... ✨</span>
+        <span>Starts downloading as soon as you add a torrent... ✨</span>
       </div>
       <div v-else class="download-card">
         <p class="medium">{{ file?.name || 'Magnet link' }}</p>
@@ -45,6 +45,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+
+import { toast } from 'toaster-ts'
 
 // components
 import Dropzone from '../components/molecules/Dropzone.vue'
@@ -113,10 +115,12 @@ const loadTorrent = (torrentFile) => {
       downloading.value = false
       console.log('Download finished!')
       downloadFinished.value = true
+      toast.success('Torrent downloaded 🎉')
     })
 
     torrent.on('warning', (message) => {
       console.warn('Torrent warning:', message)
+      toast.warning(message)
     })
 
     torrent.on('error', (err) => {

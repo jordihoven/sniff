@@ -165,3 +165,12 @@ button:hover {
 .medium {
   font-weight: var(--medium);
 }
+
+/* toaster-ts overrides */
+#app #toaster-wrapper .toast {
+  border-radius: var(--radius);
+  background-color: var(--bg-primary);
+  border-color: var(--stroke);
+  color: var(--text-primary);
+  box-shadow: none;
+}
