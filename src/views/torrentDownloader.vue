@@ -16,74 +16,52 @@
       />
     </div>
     <div class="results-wrapper">
-      <div v-if="!downloading" class="empty-state">
-        <span>Starts downloading as soon as you add a torrent... ✨</span>
+      <div v-if="!torrentInfo" class="empty-state">
+        <span>Shows torrent properties as soon as you add a torrent... ✨</span>
       </div>
-      <div v-else class="download-card">
-        <p class="medium">{{ file?.name || 'Magnet link' }}</p>
-        <div class="progress-container">
-          <div class="progress-bar" :style="{ width: progress + '%', backgroundColor: downloadFinished ? '#36B643' : '#0070f3' }"></div>
+      <div v-else class="torrent-specs">
+        <h3 class="torrent-name">{{ torrentInfo.name }}</h3>
+        <div class="torrent-spec">
+          <span>Magnetlink</span>
+          <div class="ellipsis">{{ torrentInfo.magnetURI }}</div>
         </div>
-        <span v-if="downloadFinished">Download finished!</span>
-        <div v-else>
-          <span>{{ downloadspeed }} Kb/s</span>
-          <span>, </span>
-          <span>{{ timeRemaining }} minutes remaining...</span>
+        <div class="torrent-spec">
+          <span>Torrent files</span>
+          <div v-for="file in torrentInfo.files" :key="file.name">
+            {{ file.name }}
+            {{ file.size }} Kb
+          </div>
         </div>
+        <div class="torrent-spec">
+          <span>Hash</span>
+          <div class="ellipsis">{{ torrentInfo.infoHash }}</div>
+        </div>
+        <!-- {{ torrentInfo.created }}
+        {{ torrentInfo.createdBy }}
+        {{ torrentInfo.announce }} -->
       </div>
     </div>
   </div>
-
-  <button class="search-movies-button" @click="showMovieSearch">
-    <LucideClapperboard class="icon" />
-    Search movies
-  </button>
-  <Transition>
-    <MovieSearch ref="movieSearch" v-if="isMovieSearchVisible" />
-  </Transition>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-
 import { toast } from 'toaster-ts'
 
 // components
 import Dropzone from '../components/molecules/Dropzone.vue'
-import MovieSearch from '../components/organisms/movieSearch.vue'
-
-// utils
-import { onClickOutside } from '@vueuse/core'
 
 // variables
-const movieSearch = ref(null)
-const isMovieSearchVisible = ref(false)
 const magnetLink = ref('')
-
-onClickOutside(movieSearch, () => {
-  isMovieSearchVisible.value = false
-})
-
-const showMovieSearch = () => {
-  isMovieSearchVisible.value = true
-}
-
+const torrentInfo = ref(null)
 const acceptedTypesString = '.torrent'
-const file = ref(null)
-const progress = ref(0)
-const downloadspeed = ref(0)
-const timeRemaining = ref(0)
-const downloadFinished = ref(0)
-const downloading = ref(false)
 
 let client
 
 const handleFileUpload = (files) => {
   const selectedFile = files[0]
   if (selectedFile) {
-    file.value = selectedFile
-    console.log('File selected:', file.value)
-    loadTorrent(file.value)
+    loadTorrent(selectedFile)
   } else {
     alert('Please select a valid .torrent file')
   }
@@ -100,52 +78,27 @@ const handleMagnetLink = () => {
 
 const loadTorrent = (torrentFile) => {
   client.add(torrentFile, (torrent) => {
-    console.log('Torrent info:', torrent)
-    console.log('Files:', torrent.files)
 
-    torrent.on('download', (bytes) => {
-      downloading.value = true
-      console.log('just downloaded: ' + bytes)
-      progress.value = (torrent.progress * 100).toFixed(1)
-      downloadspeed.value = (torrent.downloadSpeed / 1024).toFixed(1)
-      timeRemaining.value = Math.max(Math.floor(torrent.timeRemaining / 60000))
+    // get info from the .torrent file
+  const info = {
+    name: torrent.name,
+    totalSize: torrent.length,
+    magnetURI: torrent.magnetURI,
+    infoHash: torrent.infoHash,
+    created: torrent.created,
+    createdBy: torrent.createdBy,
+    announce: torrent.announce,
+    files: torrent.files.map((file) => ({
+        name: file.name,
+        size: file.length,
+      })),
+    }
+  torrentInfo.value = info
+
+    client.remove(torrent, () => {
+      console.log('Torrent metadata processed and removed from client.')
     })
 
-    torrent.on('done', () => {
-      downloading.value = false
-      console.log('Download finished!')
-      downloadFinished.value = true
-      toast.success('Torrent downloaded 🎉')
-    })
-
-    torrent.on('warning', (message) => {
-      console.warn('Torrent warning:', message)
-      toast.warning(message)
-    })
-
-    torrent.on('error', (err) => {
-      console.error('Torrent error:', err)
-    })
-  })
-}
-
-const downloadFiles = (files) => {
-  files.forEach((file) => {
-    file.getBuffer((err, buffer) => {
-      if (err) throw err
-
-      const blob = new Blob([buffer], { type: file.type })
-      const url = window.URL.createObjectURL(blob)
-
-      const a = document.createElement('a')
-      a.href = url
-      a.download = file.name
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-
-      window.URL.revokeObjectURL(url)
-    })
   })
 }
 
@@ -188,57 +141,7 @@ onMounted(() => {
   padding: var(--m-spacing) var(--s-spacing) var(--xl-spacing) var(--s-spacing);
 }
 
-.search-movies-button {
-  position: fixed;
-  display: flex;
-  gap: 4px;
-  padding: var(--xxs-spacing);
-  background-color: var(--bg-main);
-  border-radius: var(--radius);
-  border: var(--border);
-  color: var(--text-secondary);
-  bottom: var(--s-spacing);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 69;
-
-  display: flex;
-  padding: var(--xs-spacing);
-  border-radius: var(--radius);
-  transition: var(--transition);
-}
-.search-movies-button:hover {
-  background-color: var(--bg-primary);
-}
-
-.v-enter-active,
-.v-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-}
-
-.v-enter-from {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-20px) scale(0.95); /* Include translateX for centering */
-}
-
-.v-enter-to {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1); /* Keep translateX */
-}
-
-.v-leave-from {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1); /* Keep translateX */
-}
-
-.v-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-20px) scale(0.95); /* Include translateX */
-}
-
-.download-card {
+.torrent-specs {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -250,18 +153,23 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.progress-container {
-  width: 100%;
-  background-color: var(--stroke);
-  border-radius: 5px;
-  height: var(--xs-spacing);
-  overflow: hidden;
+.torrent-spec {
+  padding: var(--xs-spacing);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.progress-bar {
-  background-color: var(--primary);
-  height: 100%;
-  transition: width 0.3s;
+.torrent-name {
+  margin-bottom: var(--xs-spacing);
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .magnetlink-input {
