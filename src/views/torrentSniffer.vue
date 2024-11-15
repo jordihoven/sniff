@@ -95,6 +95,8 @@ const loadTorrent = (torrentFile) => {
     }
   torrentInfo.value = info
 
+  toast.success(`${torrent.name} sniffed 👀`)
+
     client.remove(torrent, () => {
       console.log('Torrent metadata processed and removed from client.')
     })
