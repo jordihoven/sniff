@@ -1,11 +1,5 @@
 @import './base.css';
 
-/* #app {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2rem;
-} */
-
 * {
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
@@ -25,19 +19,6 @@ html,
   overflow: hidden;
   padding: 0;
   margin: 0;
-}
-
-button {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  border: 1px solid var(--stroke);
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
-  font-size: var(--span);
-  font-weight: var(--medium);
-  height: fit-content;
-  padding: 6px var(--xs-spacing);
 }
 
 .clip-text {

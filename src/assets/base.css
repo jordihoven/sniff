@@ -22,7 +22,7 @@
   --semibold: 600;
   --bold: 700;
   /* spacing */
-  --xxs-spacing: 6px;
+  --xxs-spacing: 4px;
   --xs-spacing: 8px;
   --s-spacing: 16px;
   --m-spacing: 24px;
@@ -119,6 +119,23 @@ a:hover {
   color: var(--link);
 }
 
+button {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  border: 1px solid var(--stroke);
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  font-size: var(--span);
+  font-weight: var(--medium);
+  height: fit-content;
+  padding: 6px var(--xs-spacing);
+}
+
+button:hover {
+  cursor: pointer;
+}
+
 .link {
   color: var(--link);
   width: fit-content;
@@ -147,4 +164,13 @@ a:hover {
 
 .medium {
   font-weight: var(--medium);
+}
+
+/* toaster-ts overrides */
+#app #toaster-wrapper .toast {
+  border-radius: var(--radius);
+  background-color: var(--bg-primary);
+  border-color: var(--stroke);
+  color: var(--text-primary);
+  box-shadow: none;
 }
