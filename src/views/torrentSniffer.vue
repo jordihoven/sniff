@@ -55,13 +55,13 @@ import Dropzone from '../components/molecules/Dropzone.vue'
 // variables
 const magnetLink = ref('')
 const torrentInfo = ref(null)
-const acceptedTypes = 'application/x-bittorrent'
+const acceptedTypes = '.torrent'
 
 let client
 
 const handleFileUpload = (files) => {
   const selectedFile = files[0]
-  if (selectedFile && selectedFile.type === acceptedTypes) {
+  if (selectedFile && selectedFile.name.endsWith(acceptedTypes)) {
     loadTorrent(selectedFile)
   } else {
     toast.error('Only .torrent files are supported... ❤️‍🩹')

@@ -3,7 +3,7 @@
     <LucideSparkles class="icon" />
     <p class="medium">Add a .torrent file</p>
     <span>Drag and drop, or use explorer.</span>
-    <input type="file" :accept="acceptedTypes" ref="fileInput" @change="handleFilesSelected" hidden />
+    <input type="file" :accept="props.acceptedTypes" ref="fileInput" @change="handleFilesSelected" hidden />
   </div>
 </template>
 
