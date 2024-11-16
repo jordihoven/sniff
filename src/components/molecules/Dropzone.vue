@@ -3,7 +3,7 @@
     <LucideSparkles class="icon" />
     <p class="medium">Add a .torrent file</p>
     <span>Drag and drop, or use explorer.</span>
-    <input type="file" :accept="acceptedTypesString" ref="fileInput" @change="handleFilesSelected" multiple hidden />
+    <input type="file" :accept="acceptedTypes" ref="fileInput" @change="handleFilesSelected" hidden />
   </div>
 </template>
 
@@ -13,7 +13,7 @@ import { useDropZone } from '@vueuse/core'
 
 // Define props for the component
 const props = defineProps({
-  acceptedTypesString: {
+  acceptedTypes: {
     type: String,
     required: true
   },
