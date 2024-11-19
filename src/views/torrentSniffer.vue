@@ -20,7 +20,10 @@
         <span>Shows torrent properties as soon as you add a torrent... ✨</span>
       </div>
       <div v-else class="torrent-specs">
-        <h3 v-if="torrentInfo.name" class="torrent-name">{{ torrentInfo.name }}</h3>
+        <div class="torrent-header">
+          <h3 v-if="torrentInfo.name" class="torrent-name">{{ torrentInfo.name }}</h3>
+          <span>{{ formatFileSize(torrentInfo.totalSize) }}</span>
+        </div>
         <div v-if="torrentInfo.magnetURI" class="torrent-spec">
           <span>Magnetlink</span>
           <div class="clip-text">{{ torrentInfo.magnetURI }}</div>
@@ -28,18 +31,28 @@
         <div v-if="torrentInfo.files" class="torrent-spec torrent-files">
           <span>Torrent files</span>
           <div class="torrent-file" v-for="file in torrentInfo.files" :key="file.name">
-            {{ file.name }}
-            {{ file.size }} Kb
+            <div class="clip-text">{{ file.name }}</div>
+            <div>{{ formatFileSize(file.size) }}</div>
           </div>
         </div>
         <div v-if="torrentInfo.infoHash" class="torrent-spec">
           <span>Hash</span>
           <div class="clip-text">{{ torrentInfo.infoHash }}</div>
         </div>
-
-        <!-- {{ torrentInfo.created }}
-        {{ torrentInfo.createdBy }}
-        {{ torrentInfo.announce }} -->
+        <div v-if="torrentInfo.announce" class="torrent-spec torrent-files">
+          <span>Trackers</span>
+          <div class="torrent-file" v-for="tracker in torrentInfo.announce" :key="(tracker, index)">
+            <div class="clip-text">{{ tracker }}</div>
+          </div>
+        </div>
+        <div v-if="torrentInfo.created" class="torrent-spec">
+          <span>Created at</span>
+          {{ formatDate(torrentInfo.created) }}
+        </div>
+        <div v-if="torrentInfo.createdBy" class="torrent-spec">
+          <span>Created by</span>
+          {{ torrentInfo.createdBy }}
+        </div>
       </div>
     </div>
   </div>
@@ -76,6 +89,19 @@ const handleMagnetLink = () => {
   } else {
     toast.error('No magnetlink found... 🧲')
   }
+}
+
+function formatFileSize(bytes) {
+  const units = ['Bytes', 'Kb', 'Mb', 'Gb', 'Tb']
+  if (bytes === 0) return '0 Bytes'
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + units[i]
+}
+
+function formatDate(date) {
+  if (!date) return ''
+  const options = { year: 'numeric', month: 'short', day: 'numeric' } // Short month, numeric day, and year
+  return new Intl.DateTimeFormat('en-US', options).format(new Date(date))
 }
 
 const loadTorrent = (torrentFile) => {
@@ -143,6 +169,19 @@ onMounted(() => {
   padding: var(--m-spacing) var(--s-spacing) var(--xl-spacing) var(--s-spacing);
 }
 
+.torrent-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xs-spacing);
+  justify-content: center;
+  align-items: center;
+  margin: var(--xs-spacing) 0;
+  text-align: center;
+}
+.torrent-header h3 {
+  margin: 0;
+}
+
 .torrent-specs {
   display: flex;
   flex-direction: column;
@@ -170,6 +209,8 @@ onMounted(() => {
 }
 
 .torrent-file {
+  display: flex;
+  justify-content: space-between;
   background-color: var(--stroke);
   border-radius: var(--radius);
   padding: 4px;
