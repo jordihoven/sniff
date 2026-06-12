@@ -61,6 +61,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { toast } from 'toaster-ts'
+import WebTorrent from 'webtorrent/dist/webtorrent.min.js'
 
 // components
 import Dropzone from '../components/molecules/Dropzone.vue'
@@ -124,8 +125,9 @@ function formatDate(date) {
   return new Intl.DateTimeFormat('en-US', options).format(new Date(date))
 }
 
-const loadTorrent = (torrentFile) => {
-  client.add(torrentFile, (torrent) => {
+const loadTorrent = async (torrentFile) => {
+  const buffer = await torrentFile.arrayBuffer()
+  client.add(new Uint8Array(buffer), (torrent) => {
     // get info from the .torrent file
     const info = {
       name: torrent.name,
@@ -151,7 +153,7 @@ const loadTorrent = (torrentFile) => {
 }
 
 onMounted(() => {
-  client = new window.WebTorrent()
+  client = new WebTorrent()
 })
 </script>
 
@@ -205,10 +207,8 @@ onMounted(() => {
 .torrent-specs {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   background-color: var(--bg-primary);
-  border: 1px solid var(--stroke);
-  border-radius: var(--xs-spacing);
   padding: var(--xs-spacing);
   max-width: 40em;
   margin: 0 auto;
