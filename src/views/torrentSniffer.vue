@@ -22,7 +22,7 @@
       <div v-else class="torrent-specs">
         <div class="torrent-header">
           <h3 v-if="torrentInfo.name" class="torrent-name">{{ torrentInfo.name }}</h3>
-          <span>{{ formatFileSize(torrentInfo.totalSize) }}</span>
+          <span v-if="torrentInfo.totalSize">{{ formatFileSize(torrentInfo.totalSize) }}</span>
         </div>
         <div v-if="torrentInfo.magnetURI" class="torrent-spec">
           <span>Magnetlink</span>
@@ -83,12 +83,32 @@ const handleFileUpload = (files) => {
 
 const handleMagnetLink = () => {
   const isValidMagnetLink = (link) => /^magnet:\?xt=.+/.test(link)
-  if (magnetLink.value && isValidMagnetLink(magnetLink.value)) {
-    loadTorrent(magnetLink.value)
-    magnetLink.value = '' // Reset the input after loading
-  } else {
+  if (!magnetLink.value || !isValidMagnetLink(magnetLink.value)) {
     toast.error('No magnetlink found... 🧲')
+    return
   }
+
+  // get magnetlink data from infohash instead of webtorrent api...
+  const params = new URLSearchParams(magnetLink.value.slice('magnet:?'.length))
+  const xt = params.get('xt') ?? ''
+  const infoHash = xt.replace('urn:btih:', '')
+  const name = params.get('dn') ?? infoHash
+  const trackers = params.getAll('tr')
+  const size = params.get('xl') ? Number(params.get('xl')) : 0
+
+  torrentInfo.value = {
+    name,
+    totalSize: size,
+    magnetURI: magnetLink.value,
+    infoHash,
+    created: null,
+    createdBy: null,
+    announce: trackers.length ? trackers : null,
+    files: null
+  }
+
+  toast.success(`${name} sniffed 👀`)
+  magnetLink.value = ''
 }
 
 function formatFileSize(bytes) {
